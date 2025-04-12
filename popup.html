@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewsCompare</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>NewsCompare</h1>
+      <div class="tabs">
+        <button id="tab-sentiment" class="tab-button active">Sentiment</button>
+        <button id="tab-comparison" class="tab-button">Comparison</button>
+        <button id="tab-settings" class="tab-button">Settings</button>
+      </div>
+    </header>
+    
+    <div id="loading" class="status-message">
+      <div class="spinner"></div>
+      <p>Analyzing article...</p>
+    </div>
+    
+    <div id="error" class="status-message hidden">
+      <p>Not on a news article page or could not analyze article.</p>
+    </div>
+    
+    <div id="not-news" class="status-message hidden">
+      <p>Visit a supported news site to use NewsCompare.</p>
+      <p class="small">Supported sites: NYTimes, WSJ, BBC, CNN, Fox News</p>
+    </div>
+    
+    <main>
+      <!-- Sentiment Analysis Tab -->
+      <section id="sentiment-section" class="tab-content">
+        <div class="current-article">
+          <h2 id="current-title">Article Title</h2>
+          <p id="current-source">Source</p>
+        </div>
+        
+        <div class="sentiment-overview">
+          <h3>Sentiment Overview</h3>
+          <div class="sentiment-chart">
+            <div id="sentiment-distribution">
+              <!-- Sentiment distribution will be rendered here -->
+            </div>
+          </div>
+          <div class="sentiment-summary">
+            <p id="sentiment-summary-text">Summary of sentiment analysis across sources.</p>
+          </div>
+        </div>
+        
+        <div class="related-articles">
+          <h3>Related Articles</h3>
+          <ul id="related-articles-list">
+            <!-- Related articles will be populated here -->
+          </ul>
+        </div>
+      </section>
+      
+      <!-- Paragraph Comparison Tab -->
+      <section id="comparison-section" class="tab-content hidden">
+        <div class="current-paragraph">
+          <h3>Current Paragraph</h3>
+          <div id="current-paragraph-text" class="paragraph-box">
+            <p>No paragraph selected yet. Continue reading the article to see comparisons.</p>
+          </div>
+        </div>
+        
+        <div class="similar-paragraphs">
+          <h3>Similar Paragraphs from Other Sources</h3>
+          <div id="similar-paragraphs-container">
+            <!-- Similar paragraphs will be populated here -->
+          </div>
+        </div>
+      </section>
+      
+      <!-- Settings Tab -->
+      <section id="settings-section" class="tab-content hidden">
+        <h3>News Sources</h3>
+        <div class="source-toggles">
+          <label class="toggle">
+            <input type="checkbox" id="source-nyt" checked>
+            <span class="toggle-label">New York Times</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="source-wsj" checked>
+            <span class="toggle-label">Wall Street Journal</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="source-bbc" checked>
+            <span class="toggle-label">BBC</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="source-cnn" checked>
+            <span class="toggle-label">CNN</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="source-fox" checked>
+            <span class="toggle-label">Fox News</span>
+          </label>
+        </div>
+        
+        <h3>Options</h3>
+        <div class="options">
+          <label class="toggle">
+            <input type="checkbox" id="option-auto-analyze" checked>
+            <span class="toggle-label">Auto-analyze articles</span>
+          </label>
+          
+          <div class="option-group">
+            <label for="option-max-results">Maximum articles to compare:</label>
+            <select id="option-max-results">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="button-row">
+          <button id="save-settings">Save Settings</button>
+          <button id="reset-settings">Reset to Defaults</button>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>NewsCompare v0.1 - Compare mainstream news coverage</p>
+    </footer>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

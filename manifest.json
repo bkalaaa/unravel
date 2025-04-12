@@ -1,0 +1,45 @@
+{
+    "manifest_version": 3,
+    "name": "NewsCompare",
+    "version": "0.1",
+    "description": "Compare mainstream news articles and analyze sentiment across sources",
+    "permissions": [
+      "activeTab",
+      "storage",
+      "webRequest"
+    ],
+    "host_permissions": [
+      "https://*.nytimes.com/*",
+      "https://*.wsj.com/*",
+      "https://*.bbc.com/*",
+      "https://*.cnn.com/*",
+      "https://*.foxnews.com/*"
+    ],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "options_ui": {
+      "page": "options.html",
+      "open_in_tab": false
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "https://*.nytimes.com/*",
+          "https://*.wsj.com/*",
+          "https://*.bbc.com/*",
+          "https://*.cnn.com/*",
+          "https://*.foxnews.com/*"
+        ],
+        "js": ["content.js"]
+      }
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.jpg",
+        "128": "images/icon128.jpg"
+      }
+    }
+  }

@@ -13,7 +13,8 @@
       "https://*.wsj.com/*",
       "https://*.bbc.com/*",
       "https://*.cnn.com/*",
-      "https://*.foxnews.com/*"
+      "https://*.foxnews.com/*",
+      "https://newsapi.org/*"
     ],
     "background": {
       "service_worker": "background.js",

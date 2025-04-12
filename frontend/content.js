@@ -67,18 +67,7 @@ const NEWS_SITE_CONFIGS = {
       .split(' ')
       .filter(word => word.length > 2 && !stopWords.includes(word));
   }
-  function paragraphCompare(paragraphs) {
-    const paragraphs = extractArticleParagraphs(currentSite);
-    const everyOtherParagraph = paragraphs.filter((_, index) => index % 2 === 0);
-    //feed every other paragraph as input to background.js
-    chrome.runtime.sendMessage({
-      action: 'paragraphCompare',
-      data: {
-        paragraphs: everyOtherParagraph
-      }
-    })
-    
-  }
+
   // Main function to analyze the current page
   function analyzeCurrentPage() {
     const currentSite = getCurrentNewsSite();

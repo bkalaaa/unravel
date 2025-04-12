@@ -28,7 +28,7 @@ async def analyze_article(request: Request):
         valid_articles = []
         
         for article in articles:
-            text = (article.get("content", "") or "") + " " + (article.get("description", "") or "")
+            text = (article.get("content", "") or "") + " " + (article.get("description", "") or "" + (article.get("title", "") or ""))
             text = text.strip()
             
             if text:  # Only include non-empty texts

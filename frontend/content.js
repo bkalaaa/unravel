@@ -67,7 +67,18 @@ const NEWS_SITE_CONFIGS = {
       .split(' ')
       .filter(word => word.length > 2 && !stopWords.includes(word));
   }
-
+  function paragraphCompare(paragraphs) {
+    const paragraphs = extractArticleParagraphs(currentSite);
+    const everyOtherParagraph = paragraphs.filter((_, index) => index % 2 === 0);
+    //feed every other paragraph as input to background.js
+    chrome.runtime.sendMessage({
+      action: 'paragraphCompare',
+      data: {
+        paragraphs: everyOtherParagraph
+      }
+    })
+    
+  }
   // Main function to analyze the current page
   function analyzeCurrentPage() {
     const currentSite = getCurrentNewsSite();
@@ -83,7 +94,10 @@ const NEWS_SITE_CONFIGS = {
     
     const keywords = extractKeywords(title);
     const paragraphs = extractArticleParagraphs(currentSite);
+    
 
+    // feed every othere paragraph as input to the model    HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+    
     
     console.log(`NewsCompare: Extracted title: "${title}"`);
     console.log(`NewsCompare: Keywords: ${keywords.join(', ')}`);

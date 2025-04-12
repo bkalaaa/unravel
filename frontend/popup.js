@@ -80,51 +80,34 @@ const elements = {
     const container = elements.sentimentDistribution;
     container.innerHTML = '';
     
-    // Count sentiments by source
-    const sourceSentiments = {};
-    let minScore = 0;
-    let maxScore = 0;
+    // Map sentiment scores to a 0-5 scale (assuming they already are)
+    // Sort articles by score (lowest to highest)
+    const sortedData = [...sentimentData].sort((a, b) => a.sentiment.score - b.sentiment.score);
     
-    // Process sentiment data
-    sentimentData.forEach(item => {
+    // Create a bar for each individual article
+    const chartHtml = sortedData.map(item => {
       const source = item.source.split('.')[0]; // Extract domain name
-      const score = item.sentiment.score;
+      const score = item.sentiment.score; // Already on a 0-5 scale
+      const url = item.url || '#'; // Get the article URL, default to # if not available
       
-      // Track min/max for scale
-      minScore = Math.min(minScore, score);
-      maxScore = Math.max(maxScore, score);
+      // Format URL for display - extract domain without TLD
+      let displayUrl = url.replace(/^https?:\/\/(www\.)?/i, '');
+      // Stop at the first dot to get just the domain name part
+      displayUrl = displayUrl.split('.')[0];
       
-      if (!sourceSentiments[source]) {
-        sourceSentiments[source] = [];
+      // Limit to 10 characters
+      if (displayUrl.length > 10) {
+        displayUrl = displayUrl.substring(0, 10) + '...';
       }
-      sourceSentiments[source].push(score);
-    });
-    
-    // Calculate average sentiment by source
-    const averageSentiments = Object.keys(sourceSentiments).map(source => {
-      const scores = sourceSentiments[source];
-      const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-      return {
-        source,
-        averageScore: average,
-        count: scores.length
-      };
-    });
-    
-    // Sort by score (most negative to most positive)
-    averageSentiments.sort((a, b) => a.averageScore - b.averageScore);
-    
-    // Create a simple horizontal bar chart
-    const chartHtml = averageSentiments.map(item => {
-      // Normalize score to 0-100 range for width
-      const normalizedScore = ((item.averageScore - minScore) / (maxScore - minScore)) * 100;
-      const barWidth = Math.max(5, normalizedScore); // Minimum width for visibility
+      
+      // Calculate bar width as percentage of max (5)
+      const barWidth = Math.max(5, (score / 5) * 100);
       
       // Determine color based on sentiment
       let barColor;
-      if (item.averageScore < -0.2) {
+      if (score < 2) {
         barColor = '#e74c3c'; // Red for negative
-      } else if (item.averageScore > 0.2) {
+      } else if (score > 3) {
         barColor = '#2ecc71'; // Green for positive
       } else {
         barColor = '#f39c12'; // Orange for neutral
@@ -132,11 +115,13 @@ const elements = {
       
       return `
         <div class="sentiment-bar-container">
-          <div class="source-label">${item.source} (${item.count})</div>
+          <div class="source-label">
+            ${source}  ${displayUrl}
+          </div>
           <div class="sentiment-bar">
             <div class="bar" style="width: ${barWidth}%; background-color: ${barColor};"></div>
           </div>
-          <div class="score">${item.averageScore.toFixed(2)}</div>
+          <div class="score">${score.toFixed(1)}</div>
         </div>
       `;
     }).join('');
@@ -145,16 +130,19 @@ const elements = {
     
     // Generate summary text
     let summaryText = '';
-    if (averageSentiments.length > 0) {
-      const mostNegative = averageSentiments[0];
-      const mostPositive = averageSentiments[averageSentiments.length - 1];
+    if (sortedData.length > 0) {
+      const mostNegative = sortedData[0];
+      const mostPositive = sortedData[sortedData.length - 1];
       
       summaryText = `Based on ${sentimentData.length} related articles, `;
       
-      if (mostNegative.source === mostPositive.source) {
-        summaryText += `coverage from ${mostNegative.source} is relatively balanced.`;
+      const negSource = mostNegative.source.split('.')[0];
+      const posSource = mostPositive.source.split('.')[0];
+      
+      if (negSource === posSource && sortedData.length > 1) {
+        summaryText += `${negSource} shows varied perspectives on this topic.`;
       } else {
-        summaryText += `${mostPositive.source} has the most positive coverage, while ${mostNegative.source} has the most negative coverage of this topic.`;
+        summaryText += `${posSource} has the most positive coverage (${mostPositive.sentiment.score.toFixed(1)}), while ${negSource} has the most negative coverage (${mostNegative.sentiment.score.toFixed(1)}) of this topic.`;
       }
     } else {
       summaryText = 'Not enough data to analyze sentiment across sources.';

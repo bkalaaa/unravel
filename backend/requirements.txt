@@ -1,0 +1,5 @@
+run the server: uvicorn app.main:app --reload
+
+pip3 install fastapi, uvicorn, snscrape 
+
+run env: source venv/bin/activate

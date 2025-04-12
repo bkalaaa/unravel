@@ -132,53 +132,6 @@ function bodyJoinClean(text) {
   return text.trim();
 }
 
-
-
-// Simplified sentiment analysis
-function analyzeSentiment(text) {
-
-  const positiveWords = ['good', 'great', 'excellent', 'positive', 'success', 'benefit', 'happy', 'win'];
-  const negativeWords = ['bad', 'terrible', 'negative', 'failure', 'problem', 'crisis', 'sad', 'lose'];
-  
-  try {
-  const lowerText = bodyJoinClean(text);
-
-
-
-  
-  
-  let score = 0;
-  
-  // Count positive and negative words
-  positiveWords.forEach(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'g');
-    const matches = lowerText.match(regex);
-    if (matches) score += matches.length;
-  });
-  
-  negativeWords.forEach(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'g');
-    const matches = lowerText.match(regex);
-    if (matches) score -= matches.length;
-  });
-  
-  // Normalize to a range from -1 to 1
-  const words = text.split(/\s+/).length;
-  return {
-    score: words > 0 ? score / Math.sqrt(words) : 0,
-    positiveCount: positiveWords.reduce((count, word) => {
-      return count + (lowerText.match(new RegExp(`\\b${word}\\b`, 'g')) || []).length;
-    }, 0),
-    negativeCount: negativeWords.reduce((count, word) => {
-      return count + (lowerText.match(new RegExp(`\\b${word}\\b`, 'g')) || []).length;
-    }, 0)
-  }
- } catch (error) {
-  console.error('Error in sentiment analysis:', error);
-  return 1;
-  }
-}
-
 // Find similar paragraphs in other articles
 function findSimilarParagraphs(paragraph, articles) {
   const results = [];
@@ -235,19 +188,50 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       try {
         // Fetch related articles from other sources
+        console.log(`NewsCompare: Fetching articles for keywords: ${keywords.join(', ')}`);
         const articles = await fetchFromNewsAPI(keywords, site);
         
         console.log(`NewsCompare: Fetched ${articles.length} articles for keywords: ${keywords.join(', ')}`);
-        // Calculate sentiment scores
-        const sentimentScores = articles.map(article => {
-          return {
-            title: article.title,
-            source: article.source.name,
-            url: article.url,
-            publishedAt: article.publishedAt,
-            sentiment: analyzeSentiment(article.content + ' ' + (article.description || ''))
-          };
+        
+
+
+        const articlesForAnalysis = articles.map(article => ({
+          content: article.content || '',
+          description: article.description || '',
+          // You can add any other fields the backend might need to preserve
+          url: article.url,
+          title: article.title
+        }));
+
+
+        console.log('Articles for analysis:', articlesForAnalysis);
+        // Send all articles in a single batch request
+        const response = await fetch("http://localhost:8000/analyze-article", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(articlesForAnalysis)
         });
+
+
+        
+        const sentimentResults = await response.json();
+
+          
+        console.log('Sentiment analysis results:', sentimentResults);
+
+        const sentimentScores = sentimentResults.map(result => {
+            return {
+              title: result.title,
+              source: result.source?.name || '',
+              url: result.url,
+              publishedAt: result.publishedAt,
+              sentiment: {
+                score: result.score // Now accessing the score field directly
+              }
+            };
+          });
         
         // Store results for popup
         chrome.storage.local.set({
@@ -274,11 +258,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.error('Error analyzing article:', error);
       }
     })();
-    
-    // We'll respond asynchronously
-    return true;
   }
-  
   // Handle paragraph in view (Feature 2)
   if (message.action === 'paragraphInView') {
     const { paragraphContent, paragraphIndex, url } = message.data;

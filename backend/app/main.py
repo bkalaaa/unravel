@@ -22,8 +22,35 @@ async def analyze_article(request: Request):
 
     articles = await request.json()
     try:
+
+        # Prepare all texts in one batch and filter out empty texts
+        texts = []
+        valid_articles = []
+        
+        for article in articles:
+            text = (article.get("content", "") or "") + " " + (article.get("description", "") or "")
+            text = text.strip()
+            
+            if text:  # Only include non-empty texts
+                texts.append(text)
+                valid_articles.append(article)
+            else:
+                # For articles with empty content+description, use title as fallback
+                title = article.get("title", "").strip()
+                if title:
+                    texts.append(title)
+                    valid_articles.append(article)
+                    
+        if not texts:
+            return {
+                'error': 'No valid text content found in any of the articles',
+                'sentiment': {'label': 'UNKNOWN', 'confidence': 0.0},
+                'related_tweets': []
+            }
+        
         # Prepare all texts in one batch
-        texts = [article["content"] + article["description"] for article in articles]
+
+        print("texts", texts)
         
         # Get sentiment scores for all articles at once
         from .utils import sentiment_score        

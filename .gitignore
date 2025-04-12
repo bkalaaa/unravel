@@ -1,3 +1,4 @@
 .env
 temp.js
 env/
+__pycache__/

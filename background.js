@@ -6,12 +6,11 @@ const NEWS_API_ENDPOINT = 'https://newsapi.org/v2/top-headlines';
 const MAX_RESULTS = 20; // add setting FE to chrome.storage and sync here later
 
 let NEWS_API_KEY = null
-chrome.storage.local.get(['NewsAPIKey'], function(result) {
+
+NEWS_API_KEY = chrome.storage.local.get(['NewsAPIKey'], function (result) {
   console.log('NewsAPI Key:', result.NewsAPIKey);
   NEWS_API_KEY = result.NewsAPIKey;
 });
-
-
 // Predefined news sources for comparison
 const COMPARISON_SOURCES = [
   'nytimes.com',
@@ -27,11 +26,16 @@ const articleCache = {};
 // Helper function to make API requests
 async function fetchFromNewsAPI(keywords, excludeSource = null) {
   // Create a cache key from the keywords and excluded source
+
+  NEWS_API_KEY = "e751a2f8c355493799ac4f68674a4af7";
+
   if (!NEWS_API_KEY) {
     console.error("NewsAPIKey not loaded yet");
     return [];
   }
+  keywords = keywords.slice(0, 1); // Limit to only the first keyword for the query
   const cacheKey = `${keywords.join('-')}-${excludeSource || 'none'}`;
+
   /*
   // Check if we have cached results
   if (articleCache[cacheKey]) {
@@ -43,10 +47,9 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
   const queryParams = new URLSearchParams({
     apiKey: NEWS_API_KEY,
     country: 'us',
-    q: keywords.join(' OR '),
-    pageSize: MAX_RESULTS,
-    
-    // only for everything endpoint sortBy: 'relevancy', searchIn: title,
+    q: keywords, // Use OR for multiple keywords
+    pageSize: MAX_RESULTS
+    // only for everything endpoint sortBy: 'relevancy', searchIn: title, pageSize: MAX_RESULTS,
   });
   /* implement later fr maybe
   // exclude the current source if specified
@@ -54,9 +57,16 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
     queryParams.append('domains', COMPARISON_SOURCES.filter(s => s !== excludeSource).join(','));
   }
   */
+  console.log(queryParams.toString());
   try {
-    const response = await fetch(`${NEWS_API_ENDPOINT}?${queryParams}`);
+    console.log('Fetching from News API:', `${NEWS_API_ENDPOINT}?${queryParams}`);
+    const response = await fetch(`${NEWS_API_ENDPOINT}?${queryParams}`, {
+      headers: {
+        'X-Api-Key': NEWS_API_KEY
+    }
+    });
     if (!response.ok) {
+      console.log(`data: ${response}`);
       throw new Error(`API request failed with status ${response.status}`);
     }
     

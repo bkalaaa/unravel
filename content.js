@@ -83,6 +83,7 @@ const NEWS_SITE_CONFIGS = {
     
     const keywords = extractKeywords(title);
     const paragraphs = extractArticleParagraphs(currentSite);
+
     
     console.log(`NewsCompare: Extracted title: "${title}"`);
     console.log(`NewsCompare: Keywords: ${keywords.join(', ')}`);

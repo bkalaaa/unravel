@@ -33,8 +33,8 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
     console.error("NewsAPIKey not loaded yet");
     return [];
   }
-  keywords = keywords.slice(0, 1); // Limit to only the first keyword for the query
-  const cacheKey = `${keywords.join('-')}-${excludeSource || 'none'}`;
+  keywords = keywords[0]; // Limit to only the first keyword for the query
+  // const cacheKey = `${keywords.join('-')}-${excludeSource || 'none'}`;
 
   /*
   // Check if we have cached results
@@ -175,7 +175,7 @@ function analyzeSentiment(text) {
   }
  } catch (error) {
   console.error('Error in sentiment analysis:', error);
-  return 0;
+  return 1;
   }
 }
 

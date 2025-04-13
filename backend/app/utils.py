@@ -1,10 +1,36 @@
+from atproto import Client
+
+def fetch_bluesky_trending_window(keyword: str, limit: int = 10):
+    client = Client()
+    client.login('greenlavender.bsky.social', 'fa4v-uytk-f3ri-4uxi') 
+    try:
+        posts_raw = client.app.bsky.feed.search_posts({'q': keyword, 'limit': limit})['posts']
+        print(f"📥 Fetched {len(posts_raw)} posts for keyword: {keyword}")
+    except Exception as e:
+        print(f"❌ Error fetching posts for keyword '{keyword}': {e}")
+        return []
+
+    results = []
+    for post in posts_raw:
+        try:
+            results.append({
+                "handle": post.author.handle,
+                "displayName": getattr(post.author, "displayName", None),
+                "createdAt": post.indexed_at,
+                "content": post.record.text,
+                "uri": post.uri
+            })
+        except Exception as err:
+            print(f"⚠️ Skipping post due to parse error: {err}")
+            continue
+
+    return results
+
 def sentiment_score(texts):
-    from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
-    
-    # Initialize the classifier once
+    from transformers import pipeline
+
     classifier = pipeline("zero-shot-classification")
     
-    # Define the sentiment labels and their numeric values
     labels = ["very positive", "positive", "neutral", "negative", "very negative"]
     label_values = {
         "very positive": 5,
@@ -13,29 +39,21 @@ def sentiment_score(texts):
         "negative": 2,
         "very negative": 1
     }
-    
-    # Process all texts in one batch if possible
-    # Note: Some pipelines support batching natively, but zero-shot might not
-    # If the classifier supports batching:
+
+    weighted_scores = []
     try:
         results = classifier(texts, candidate_labels=labels)
-        # If it returns a list of results
         if isinstance(results, list):
-            weighted_scores = []
             for result in results:
                 weighted_sum = sum(label_values[label] * score for label, score in zip(result["labels"], result["scores"]))
                 weighted_scores.append(weighted_sum)
             return weighted_scores
     except:
         pass
-    
-    # Fallback: process one by one if batching isn't supported
-    weighted_scores = []
+
     for text in texts:
         result = classifier(text, candidate_labels=labels)
-        
-        # Calculate weighted score
         weighted_sum = sum(label_values[label] * score for label, score in zip(result["labels"], result["scores"]))
         weighted_scores.append(weighted_sum)
-    
+
     return weighted_scores

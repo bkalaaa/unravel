@@ -248,7 +248,8 @@ const elements = {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            xAxis: {
+            x: {
+              type: 'category', // or 'time' / 'linear' if needed
               grid: {
                 color: '#e0e0e0'
               },
@@ -264,7 +265,7 @@ const elements = {
                 }
               }
             },
-            yAxis: {
+            y: {
               grid: {
                 color: '#e0e0e0'
               },
@@ -294,7 +295,7 @@ const elements = {
               mode: 'index',
               intersect: false
             }
-          }
+          },
         }
       };
       

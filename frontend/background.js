@@ -33,7 +33,14 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
     console.error("NewsAPIKey not loaded yet");
     return [];
   }
-  keywords = keywords[0]; // Limit to only the first keyword for the query
+
+  // Validate keywords parameter
+  if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
+    console.error("Invalid keywords parameter:", keywords);
+    return [];
+  }
+
+  const keyword = keywords[0]; // Limit to only the first keyword for the query
   // const cacheKey = `${keywords.join('-')}-${excludeSource || 'none'}`;
 
   /*
@@ -47,7 +54,7 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
   const queryParams = new URLSearchParams({
     apiKey: NEWS_API_KEY,
     country: 'us',
-    q: keywords, // Use OR for multiple keywords
+    q: keyword, // Use OR for multiple keywords
     pageSize: MAX_RESULTS
     // only for everything endpoint sortBy: 'relevancy', searchIn: title, pageSize: MAX_RESULTS,
   });

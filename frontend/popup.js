@@ -203,179 +203,93 @@ const elements = {
     
     // Set up graph header
     const graphTitle = document.createElement('h3');
-    graphTitle.textContent = 'Coverage Comparison Across Sources';
+    graphTitle.textContent = 'Coverage Trend Across Sources';
     elements.currentParagraphText.appendChild(graphTitle);
     
-    // Create a container for the D3 graph
-    const graphContainer = document.createElement('div');
-    graphContainer.className = 'd3-chart-container';
-    graphContainer.id = 'coverage-chart';
-    elements.currentParagraphText.appendChild(graphContainer);
+    // Create a canvas for Chart.js
+    const canvasContainer = document.createElement('div');
+    canvasContainer.className = 'chart-container';
+    canvasContainer.style.height = '250px';
     
-    // Sample data - coverage by source over time
-    const data = [
-      { source: 'Fox News', color: '#ff6b6b', values: [
-        { date: '2023-01-01', value: 15 },
-        { date: '2023-01-08', value: 25 },
-        { date: '2023-01-15', value: 40 },
-        { date: '2023-01-22', value: 35 },
-        { date: '2023-01-29', value: 65 },
-        { date: '2023-02-05', value: 55 },
-        { date: '2023-02-12', value: 45 }
-      ]},
-      { source: 'CNN', color: '#48dbfb', values: [
-        { date: '2023-01-01', value: 10 },
-        { date: '2023-01-08', value: 15 },
-        { date: '2023-01-15', value: 30 },
-        { date: '2023-01-22', value: 40 },
-        { date: '2023-01-29', value: 35 },
-        { date: '2023-02-05', value: 40 },
-        { date: '2023-02-12', value: 38 }
-      ]},
-      { source: 'NYT', color: '#1dd1a1', values: [
-        { date: '2023-01-01', value: 5 },
-        { date: '2023-01-08', value: 10 },
-        { date: '2023-01-15', value: 35 },
-        { date: '2023-01-22', value: 60 },
-        { date: '2023-01-29', value: 75 },
-        { date: '2023-02-05', value: 65 },
-        { date: '2023-02-12', value: 70 }
-      ]},
-      { source: 'WSJ', color: '#5f27cd', values: [
-        { date: '2023-01-01', value: 8 },
-        { date: '2023-01-08', value: 20 },
-        { date: '2023-01-15', value: 45 },
-        { date: '2023-01-22', value: 55 },
-        { date: '2023-01-29', value: 45 },
-        { date: '2023-02-05', value: 55 },
-        { date: '2023-02-12', value: 50 }
-      ]},
-      { source: 'BBC', color: '#ff9f43', values: [
-        { date: '2023-01-01', value: 12 },
-        { date: '2023-01-08', value: 30 },
-        { date: '2023-01-15', value: 25 },
-        { date: '2023-01-22', value: 35 },
-        { date: '2023-01-29', value: 50 },
-        { date: '2023-02-05', value: 45 },
-        { date: '2023-02-12', value: 40 }
-      ]}
-    ];
+    const canvas = document.createElement('canvas');
+    canvas.id = 'coverage-chart';
+    canvasContainer.appendChild(canvas);
+    elements.currentParagraphText.appendChild(canvasContainer);
     
-    // Parse dates
-    const parseDate = d3.timeParse("%Y-%m-%d");
-    data.forEach(source => {
-      source.values.forEach(d => {
-        d.date = parseDate(d.date);
-      });
-    });
+    // Sample data points for the line graph
+    const timeLabels = ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22', 'Jan 29', 'Feb 5', 'Feb 12'];
+
     
-    // Setup chart dimensions
-    const margin = {top: 20, right: 50, bottom: 30, left: 50};
-    const width = 340 - margin.left - margin.right;
-    const height = 220 - margin.top - margin.bottom;
+    // Define colors for each source
+    const colors = {
+      'Fox News': '#ff6b6b',
+      'CNN': '#48dbfb',
+      'NYT': '#1dd1a1',
+      'WSJ': '#5f27cd',
+      'BBC': '#ff9f43'
+    };
     
-    // Create SVG
-    const svg = d3.select("#coverage-chart")
-      .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
     
-    // Setup scales
-    const x = d3.scaleTime()
-      .domain(d3.extent(data[0].values, d => d.date))
-      .range([0, width]);
     
-    const y = d3.scaleLinear()
-      .domain([0, 100])
-      .range([height, 0]);
+    // Configure Chart.js
+    const chartConfig = {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 12,
+              padding: 15,
+              font: {
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: '#e0e0e0'
+            },
+            title: {
+              display: true,
+              text: 'Date',
+              font: {
+                size: 12
+              }
+            }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            grid: {
+              color: '#e0e0e0'
+            },
+            title: {
+              display: true,
+              text: 'Coverage Intensity (%)',
+              font: {
+                size: 12
+              }
+            }
+          }
+        }
+      }
+    };
     
-    // Add X axis
-    svg.append("g")
-      .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x)
-        .ticks(5)
-        .tickFormat(d3.timeFormat("%b %d")));
-    
-    // Add Y axis
-    svg.append("g")
-      .call(d3.axisLeft(y)
-        .ticks(5)
-        .tickFormat(d => `${d}%`));
-    
-    // Add grid lines
-    svg.append("g")
-      .attr("class", "grid")
-      .call(d3.axisLeft(y)
-        .ticks(5)
-        .tickSize(-width)
-        .tickFormat(""));
-    
-    // Create the line generator
-    const line = d3.line()
-      .x(d => x(d.date))
-      .y(d => y(d.value))
-      .curve(d3.curveMonotoneX); // Smooth curve
-    
-    // Add the lines
-    data.forEach(source => {
-      // Add the line path
-      svg.append("path")
-        .datum(source.values)
-        .attr("fill", "none")
-        .attr("stroke", source.color)
-        .attr("stroke-width", 2.5)
-        .attr("d", line);
-      
-      // Add data points
-      svg.selectAll(`.point-${source.source.replace(/\s+/g, '-')}`)
-        .data(source.values)
-        .enter()
-        .append("circle")
-        .attr("class", `point-${source.source.replace(/\s+/g, '-')}`)
-        .attr("cx", d => x(d.date))
-        .attr("cy", d => y(d.value))
-        .attr("r", 4)
-        .attr("fill", "white")
-        .attr("stroke", source.color)
-        .attr("stroke-width", 2);
-    });
-    
-    // Add X axis label
-    svg.append("text")
-      .attr("text-anchor", "middle")
-      .attr("x", width/2)
-      .attr("y", height + margin.bottom)
-      .style("font-size", "12px")
-      .style("fill", "#5f6368")
-      .text("Date");
-    
-    // Add Y axis label
-    svg.append("text")
-      .attr("text-anchor", "middle")
-      .attr("transform", "rotate(-90)")
-      .attr("y", -margin.left + 15)
-      .attr("x", -height/2)
-      .style("font-size", "12px")
-      .style("fill", "#5f6368")
-      .text("Coverage Intensity (%)");
-    
-    // Add a legend
-    const legendContainer = document.createElement('div');
-    legendContainer.className = 'graph-legend';
-    
-    data.forEach(source => {
-      const legendItem = document.createElement('div');
-      legendItem.className = 'legend-item';
-      legendItem.innerHTML = `
-        <span class="legend-color" style="background-color: ${source.color};"></span>
-        <span class="legend-label">${source.source}</span>
-      `;
-      legendContainer.appendChild(legendItem);
-    });
-    
-    elements.currentParagraphText.appendChild(legendContainer);
+    // Create the chart
+    new Chart(canvas, chartConfig);
     
     // Add explanation text below the graph
     const explanationText = document.createElement('div');

@@ -571,3 +571,31 @@
   .graph-explanation p:last-child {
     margin-bottom: 0;
   }
+
+  /* Add these Chart.js specific styles */
+
+  .chart-container {
+    position: relative;
+    margin: 20px 0;
+    width: 100%;
+  }
+  
+  #coverage-chart {
+    max-height: 250px;
+  }
+  
+  /* Make sure our explanation text looks good */
+  .graph-explanation {
+    background-color: #f1f3f4;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 15px 0;
+    width: 100%;
+  }
+  
+  .graph-explanation p {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  /* You can remove the old graph styles if not needed anymore */

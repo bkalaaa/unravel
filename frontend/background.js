@@ -5,12 +5,7 @@
 const NEWS_API_ENDPOINT = 'https://newsapi.org/v2/top-headlines';
 const MAX_RESULTS = 20; // add setting FE to chrome.storage and sync here later
 
-let NEWS_API_KEY = null
 
-NEWS_API_KEY = chrome.storage.local.get(['NewsAPIKey'], function (result) {
-  console.log('NewsAPI Key:', result.NewsAPIKey);
-  NEWS_API_KEY = result.NewsAPIKey;
-});
 // Predefined news sources for comparison
 const COMPARISON_SOURCES = [
   'nytimes.com',
@@ -180,6 +175,38 @@ function findSimilarParagraphs(paragraph, articles) {
 
 // Handle messages from content script or popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action == 'frequencyGraph') {
+    
+    const { keywords } = message.data;
+    console.log('Received frequency graph request in background for keywords:', keywords);
+    (async () => {try {
+      const response = await fetch("http://localhost:8000/frequency-graph", {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ keywords })
+      });
+      const frequencyData = await response.json();
+      console.log('Frequency graph data:', frequencyData);
+
+      // Send the frequency data back to the content script
+      chrome.runtime.sendMessage({
+        action: 'frequencyGraphData',
+        data: frequencyData
+      });
+    } catch (error) {
+      console.error('Error fetching frequency graph data:', error);
+      // Handle error case
+      chrome.runtime.sendMessage({
+        action: 'frequencyGraphError',
+        data: {
+          error: 'Failed to fetch frequency graph data'
+        }
+      });
+    }
+  })();
+  }
+
   // Handle article analysis request (Feature 1)
   if (message.action === 'analyzeArticle') {
     const { keywords, site, title, url } = message.data;

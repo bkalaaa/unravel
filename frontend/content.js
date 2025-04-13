@@ -84,8 +84,8 @@ const NEWS_SITE_CONFIGS = {
     const keywords = extractKeywords(title);
     const paragraphs = extractArticleParagraphs(currentSite);
     
-
-    // feed every othere paragraph as input to the model    HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+    
+    // Feed every othere paragraph as input to the model    HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
     
     
     console.log(`NewsCompare: Extracted title: "${title}"`);
@@ -103,11 +103,35 @@ const NEWS_SITE_CONFIGS = {
         url: window.location.href
       }
     });
+
+    chrome.runtime.sendMessage({
+    action: 'frequencyGraph',
+    data: {
+      keywords: keywords
+    } }); 
     
-    // Set up paragraph tracking for Feature 2
-    setupParagraphTracking(currentSite, paragraphs);
-  }
+
   
+  function frequencyGraph() {
+    const frequency = {};
+    const paragraphs = extractArticleParagraphs(currentSite);
+
+    paragraphs.forEach(paragraph => {
+      const words = paragraph.toLowerCase().match(/\b\w+\b/g);
+      if (words) {
+        words.forEach(word => {
+          frequency[word] = (frequency[word] || 0) + 1;
+        });
+      }
+    });
+    
+    // Sort by frequency
+    const sortedFrequency = Object.entries(frequency).sort((a, b) => b[1] - a[1]);
+    
+    // Create a simple bar graph using console.table
+    console.table(sortedFrequency.slice(0, 10)); // Display top 10 words
+  } 
+
   // Track which paragraphs are currently being viewed
   function setupParagraphTracking(site, paragraphs) {
     const config = NEWS_SITE_CONFIGS[site];
@@ -157,4 +181,15 @@ const NEWS_SITE_CONFIGS = {
       }
       return true; // Indicates async response
     }
+    if (message.action === 'frequencyGraph') {
+      const frequencyData = message.data;
+      console.log('Content script received frequency data:', frequencyData);
+      displayFrequencyGraph(frequencyData); 
+    }
+    if (message.action === 'frequencyGraphError') {
+      const error = message.data;
+      console.error('Error fetching frequency data:', error);
+
+    }
   });
+}

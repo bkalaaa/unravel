@@ -1,3 +1,5 @@
+import requests
+from datetime import date
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import pipeline
@@ -16,6 +18,41 @@ app.add_middleware(
 )
 
 sentiment_pipeline = pipeline("sentiment-analysis")
+
+@app.get("/time-graph")
+async def time_graph(keyword: str):
+    websites = 'wsj.com, aljazeera.com, bbc.co.uk , nytimes.com, bloomberg.com, cnn.com, foxnews.com, reuters.com ,washingtonpost.com'
+    # make website non list
+    startDate = date.today()
+    endDate = startDate.copy().replace(month=startDate.month - 1 if startDate.month > 1 else 12)
+    try:        
+        print("attempting to fetch frequency data with , keyword:", keyword)
+        response = await requests.get("https://newsapi.org/v2/everything", params={
+            'q': keyword,
+            'domains': websites,
+            'sortBy': 'popularity',
+            'pageSize': 100,
+            'language': 'en',
+            'from': startDate,
+            'to': endDate,
+            'sources': websites,
+            'apiKey': 'replace'})
+        if response.status_code != 200:
+            return {'error': 'Failed to fetch data from NewsAPI'}
+        print("response", response)
+        data = response.json()
+        fullarticles = data.get('articles', [])
+        if not fullarticles:
+            return {'error': 'No articles found for the given keyword'}
+
+        return fullarticles
+
+
+    except Exception as e:
+        print("Error fetching data:", e)
+        return {'error': 'An error occurred while fetching data'}
+
+
 
 @app.post("/analyze-article")
 async def analyze_article(request: Request):

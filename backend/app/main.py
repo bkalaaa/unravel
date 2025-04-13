@@ -46,7 +46,7 @@ async def time_graph(request: Request):
                     'language': 'en',
                     'from': start_date.isoformat(),
                     'to': end_date.isoformat(),
-                    'apiKey': 'your-api-key-here'
+                    'apiKey': '8df54a033ba74dda9612770ac4bf8c5c'
                 }
             ) as response:
                 if response.status != 200:

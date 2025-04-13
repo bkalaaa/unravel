@@ -27,13 +27,14 @@ const articleCache = {};
 async function fetchFromNewsAPI(keywords, excludeSource = null) {
   // Create a cache key from the keywords and excluded source
 
-  NEWS_API_KEY = "e751a2f8c355493799ac4f68674a4af7";
+  NEWS_API_KEY = "8df54a033ba74dda9612770ac4bf8c5c";
 
   if (!NEWS_API_KEY) {
     console.error("NewsAPIKey not loaded yet");
     return [];
   }
-  keywords = keywords[0]; // Limit to only the first keyword for the query
+
+
   // const cacheKey = `${keywords.join('-')}-${excludeSource || 'none'}`;
 
   /*
@@ -47,7 +48,7 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
   const queryParams = new URLSearchParams({
     apiKey: NEWS_API_KEY,
     country: 'us',
-    q: keywords, // Use OR for multiple keywords
+    q: keywords[0], // Use OR for multiple keywords
     pageSize: MAX_RESULTS
     // only for everything endpoint sortBy: 'relevancy', searchIn: title, pageSize: MAX_RESULTS,
   });
@@ -67,7 +68,7 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
     });
     if (!response.ok) {
       console.log(`data: ${response}`);
-      throw new Error(`API request failed with status ${response.status}`);
+      throw new Error(`API request failed with status ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -90,7 +91,7 @@ async function frequencyGraph(keyword) {
   // Calculate date 30 days ago
   const startDate = new Date();
   startDate.setDate(endDate.getDate() - 30);
-  NEWS_API_KEY = "e751a2f8c355493799ac4f68674a4af7";
+  NEWS_API_KEY = "8df54a033ba74dda9612770ac4bf8c5c";
   console.log("starting FE func, keyword:", keyword);
   
   try {

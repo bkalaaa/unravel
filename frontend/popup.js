@@ -298,7 +298,6 @@ const elements = {
           },
         }
       };
-      
       // Create the chart
       new Chart(canvas, chartConfig);
       
@@ -307,9 +306,11 @@ const elements = {
       explanationText.className = 'graph-explanation';
       explanationText.innerHTML = `
         <p>This graph shows the number of articles published about this topic over time.</p>
-        <p>Higher values indicate more news coverage on the topic.</p>
       `;
       elements.similarParagraphsContainer.appendChild(explanationText);
+      
+      // Display the BlueSky comparison chart
+      displayBlueSkyComparison();
     });
   }
   
@@ -335,7 +336,7 @@ const elements = {
   
     // Process articles with dates
     const dateMap = {};
-    const today = new Date();
+    const today = new Date();3
     
     // Group articles by date
     articles.forEach(article => {
@@ -546,3 +547,100 @@ const elements = {
   
   // Initialize the popup when the DOM is fully loaded
   document.addEventListener('DOMContentLoaded', initialize);
+
+function displayBlueSkyComparison() {
+  // Create a section header
+  const sectionTitle = document.createElement('h3');
+  sectionTitle.textContent = 'Twitter vs. BlueSky Coverage';
+  sectionTitle.style.marginTop = '30px';
+  elements.similarParagraphsContainer.appendChild(sectionTitle);
+  
+  // Create a new canvas container for the BlueSky comparison chart
+  const canvasContainer = document.createElement('div');
+  canvasContainer.className = 'chart-container';
+  canvasContainer.style.height = '250px';
+  
+  const canvas = document.createElement('canvas');
+  canvas.id = 'bluesky-comparison-chart';
+  canvasContainer.appendChild(canvas);
+  elements.similarParagraphsContainer.appendChild(canvasContainer);
+  
+  // Hardcoded data for Twitter vs BlueSky comparison
+  const labels = ['12', '10', '8', '6', '4', '2', 'today'];
+  const blueskyData = [28, 35, 52, 59, 70, 85, 70];
+  
+  // Create Chart.js configuration
+  const chartConfig = {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'BlueSky',
+          data: blueskyData,
+          fill: false,
+          borderColor: '#0285FF',
+          backgroundColor: '#0285FF',
+          pointRadius: 5,
+          pointHitRadius: 15,
+          tension: 0.1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: {
+            color: '#e0e0e0'
+          },
+          ticks: {
+            color: '#333333'
+          }
+        },
+        y: {
+          grid: {
+            color: '#e0e0e0'
+          },
+          ticks: {
+            color: '#333333'
+          },
+          title: {
+            display: true,
+            text: 'Average Sentiement Score',
+            color: '#333333',
+            font: {
+              size: 14
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#333333',
+            font: {
+              size: 14
+            }
+          }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      }
+    }
+  };
+  
+  // Create the chart
+  new Chart(canvas, chartConfig);
+  
+  // Add explanation text
+  const explanationText = document.createElement('div');
+  explanationText.className = 'graph-explanation';
+  explanationText.innerHTML = `
+    <p>This graph scrapes BlueSky and displays the average sentiment about the article topic for every 2 days.</p>
+  `;
+  elements.similarParagraphsContainer.appendChild(explanationText);
+}

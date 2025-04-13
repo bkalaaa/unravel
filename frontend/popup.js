@@ -197,42 +197,145 @@ const elements = {
   
   // Display paragraph comparisons
   function displayParagraphComparison(comparisonData) {
-    if (!comparisonData) {
-      elements.currentParagraphText.innerHTML = '<p>No paragraph data available. Continue reading the article.</p>';
-      elements.similarParagraphsContainer.innerHTML = '<div class="no-results">No comparison data available</div>';
-      return;
-    }
+    // Clear existing content
+    elements.currentParagraphText.innerHTML = '';
+    elements.similarParagraphsContainer.innerHTML = '';
     
-    // Display current paragraph
-    elements.currentParagraphText.innerHTML = `<p>${comparisonData.currentParagraph}</p>`;
+    // Set up graph header
+    const graphTitle = document.createElement('h3');
+    graphTitle.textContent = 'Coverage Comparison Across Sources';
+    elements.currentParagraphText.appendChild(graphTitle);
     
-    // Display similar paragraphs
-    const similarParagraphs = comparisonData.similarParagraphs;
+    // Create the line graph
+    const graphContent = document.createElement('div');
+    graphContent.className = 'comparison-graph';
     
-    if (similarParagraphs.length === 0) {
-      elements.similarParagraphsContainer.innerHTML = '<div class="no-results">No similar paragraphs found</div>';
-      return;
-    }
+    // Sample data points for the line graph
+    const dataPoints = [
+      {source: 'Fox News', values: [0, 25, 40, 35, 65, 55]},
+      {source: 'CNN', values: [0, 15, 30, 40, 35, 40]},
+      {source: 'NYT', values: [0, 10, 35, 60, 75, 65]},
+      {source: 'WSJ', values: [0, 20, 45, 55, 45, 55]},
+      {source: 'BBC', values: [0, 30, 25, 35, 50, 45]}
+    ];
     
-    const paragraphsHtml = similarParagraphs.map(p => {
-      // Calculate similarity percentage for display
-      const similarityPercent = Math.round(p.similarity * 100);
+    // Calculate line paths and points
+    const graphWidth = 300;
+    const graphHeight = 200;
+    const padding = 40;
+    const timePoints = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May'];
+    const colors = {
+      'Fox News': '#ff6b6b',
+      'CNN': '#48dbfb',
+      'NYT': '#1dd1a1',
+      'WSJ': '#5f27cd',
+      'BBC': '#ff9f43'
+    };
+    
+    // Create SVG element
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute('width', graphWidth);
+    svg.setAttribute('height', graphHeight);
+    svg.style.margin = '10px 0';
+    
+    // Create line paths for each source
+    dataPoints.forEach(data => {
+      const points = data.values.map((value, index) => {
+        const x = (index / (data.values.length - 1)) * (graphWidth - padding) + (padding/2);
+        const y = graphHeight - ((value / 100) * (graphHeight - padding)) - (padding/2);
+        return `${x},${y}`;
+      }).join(' ');
       
-      return `
-        <div class="similar-paragraph">
-          <div class="paragraph-header">
-            <span class="source">${p.source}</span>
-            <span class="similarity-score">Similarity: ${similarityPercent}%</span>
-          </div>
-          <div class="paragraph-box">
-            <p>${p.paragraph}</p>
-          </div>
-          <a href="${p.url}" target="_blank" class="read-more">Read full article</a>
-        </div>
-      `;
-    }).join('');
+      // Create the polyline (line graph path)
+      const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      polyline.setAttribute("points", points);
+      polyline.setAttribute("fill", "none");
+      polyline.setAttribute("stroke", colors[data.source]);
+      polyline.setAttribute("stroke-width", "2");
+      svg.appendChild(polyline);
+      
+      // Add data points as circles
+      data.values.forEach((value, index) => {
+        const x = (index / (data.values.length - 1)) * (graphWidth - padding) + (padding/2);
+        const y = graphHeight - ((value / 100) * (graphHeight - padding)) - (padding/2);
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", x);
+        circle.setAttribute("cy", y);
+        circle.setAttribute("r", "3");
+        circle.setAttribute("fill", "white");
+        circle.setAttribute("stroke", colors[data.source]);
+        circle.setAttribute("stroke-width", "2");
+        svg.appendChild(circle);
+      });
+    });
     
-    elements.similarParagraphsContainer.innerHTML = paragraphsHtml;
+    // Add grid lines
+    for (let i = 0; i <= 4; i++) {
+      const y = graphHeight - ((i / 4) * (graphHeight - padding)) - (padding/2);
+      
+      // Create grid line
+      const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      gridLine.setAttribute("x1", padding/2);
+      gridLine.setAttribute("y1", y);
+      gridLine.setAttribute("x2", graphWidth - padding/2);
+      gridLine.setAttribute("y2", y);
+      gridLine.setAttribute("stroke", "#e0e0e0");
+      gridLine.setAttribute("stroke-width", "1");
+      svg.appendChild(gridLine);
+      
+      // Add y-axis labels
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", padding/2 - 5);
+      text.setAttribute("y", y + 5);
+      text.setAttribute("text-anchor", "end");
+      text.setAttribute("font-size", "10");
+      text.setAttribute("fill", "#5f6368");
+      text.textContent = `${i * 25}%`;
+      svg.appendChild(text);
+    }
+    
+    // Add x-axis labels
+    timePoints.forEach((label, index) => {
+      if (label) {
+        const x = (index / (timePoints.length - 1)) * (graphWidth - padding) + (padding/2);
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", x);
+        text.setAttribute("y", graphHeight - 10);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("font-size", "10");
+        text.setAttribute("fill", "#5f6368");
+        text.textContent = label;
+        svg.appendChild(text);
+      }
+    });
+    
+    // Add legend
+    const legendContainer = document.createElement('div');
+    legendContainer.className = 'graph-legend';
+    
+    Object.entries(colors).forEach(([source, color]) => {
+      const legendItem = document.createElement('div');
+      legendItem.className = 'legend-item';
+      legendItem.innerHTML = `
+        <span class="legend-color" style="background-color: ${color};"></span>
+        <span class="legend-label">${source}</span>
+      `;
+      legendContainer.appendChild(legendItem);
+    });
+    
+    graphContent.appendChild(svg);
+    graphContent.appendChild(legendContainer);
+    elements.currentParagraphText.appendChild(graphContent);
+    
+    // Add explanation text below the graph
+    const explanationText = document.createElement('div');
+    explanationText.className = 'graph-explanation';
+    explanationText.innerHTML = `
+      <p>This graph shows the trend of coverage for this topic across different news sources over time.</p>
+      <p>Higher values indicate more coverage intensity on the topic.</p>
+    `;
+    elements.similarParagraphsContainer.appendChild(explanationText);
   }
   
   // Settings management

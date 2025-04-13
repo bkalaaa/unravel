@@ -366,3 +366,130 @@
     background-color: #f1f3f4;
     border-radius: 4px;
   }
+
+  /* Comparison Graph Styles */
+  .comparison-graph-container {
+    margin-top: 15px;
+  }
+  
+  .comparison-graph {
+    display: flex;
+    flex-direction: column;
+    height: 250px;
+    margin: 20px 0;
+  }
+  
+  .graph-axes {
+    display: flex;
+    height: 200px;
+  }
+  
+  .y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-right: 10px;
+    width: 60px;
+    text-align: right;
+    font-size: 12px;
+    color: #5f6368;
+  }
+  
+  .graph-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    flex-grow: 1;
+    border-left: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    padding: 0 5px 0 0;
+  }
+  
+  .graph-bar {
+    width: 30px;
+    background-color: #1a73e8;
+    margin: 0 10px;
+    position: relative;
+    border-radius: 3px 3px 0 0;
+    transition: height 0.5s ease;
+  }
+  
+  .bar-label {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  
+  .x-axis-label {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 12px;
+    color: #5f6368;
+  }
+  
+  .graph-explanation {
+    background-color: #f1f3f4;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 15px 0;
+  }
+  
+  .graph-explanation p {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  .graph-explanation p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Line Graph Styles - Add these to your CSS file */
+
+  .comparison-graph {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+  }
+  
+  .graph-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 12px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+  }
+  
+  .legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+    border-radius: 2px;
+  }
+  
+  .legend-label {
+    color: #5f6368;
+  }
+  
+  /* Hide the old bar graph styles but keep the explanation styling */
+  .graph-bar, .bar-label, .y-axis, .graph-axes, .graph-content {
+    display: none;
+  }
+  
+  .graph-explanation {
+    background-color: #f1f3f4;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 15px 0;
+    width: 100%;
+  }

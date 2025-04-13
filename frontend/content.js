@@ -103,7 +103,12 @@ const NEWS_SITE_CONFIGS = {
         url: window.location.href
       }
     });
-    
+    chrome.runtime.sendMessage({
+      action: 'frequencyGraph',
+      data: {
+        keywords: keywords
+      }
+    });
     // Set up paragraph tracking for Feature 2
     setupParagraphTracking(currentSite, paragraphs);
   }

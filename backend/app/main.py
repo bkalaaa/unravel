@@ -1,3 +1,6 @@
+import aiohttp
+from datetime import date, timedelta
+from requests import Request
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import pipeline
@@ -14,6 +17,54 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/time-graph")
+async def time_graph(request: Request):
+
+    keyword = await request.json()
+    print("keyword", keyword)
+    keyword = keyword.get("keyword", "")
+
+    websites = 'wsj.com, aljazeera.com, bbc.co.uk, nytimes.com, bloomberg.com, cnn.com, foxnews.com, reuters.com, washingtonpost.com'
+    # make website non list
+    # Fix date handling - date objects don't have copy()
+    end_date = date.today()
+    # Calculate date 30 days ago
+    start_date = end_date - timedelta(days=30)
+    print("starting BE func, keyword:", keyword)
+    try:        
+        print("attempting to fetch frequency data with , keyword:", keyword)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://newsapi.org/v2/everything", 
+                params={
+                    'q': keyword,
+                    'domains': websites,
+                    'sortBy': 'popularity',
+                    'pageSize': 100,
+                    'language': 'en',
+                    'from': start_date.isoformat(),
+                    'to': end_date.isoformat(),
+                    'apiKey': 'your-api-key-here'
+                }
+            ) as response:
+                if response.status != 200:
+                    return {'error': f'Failed to fetch data from NewsAPI: {response.status}'}
+            
+                data = await response.json()
+                full_articles = data.get('articles', [])
+                
+                if not full_articles:
+                    return {'error': 'No articles found for the given keyword'}
+                
+                return full_articles
+            
+    except Exception as e:
+        print("Error fetching data:", e)
+        return {'error': str(e)}
+    
+
 
 sentiment_pipeline = pipeline("sentiment-analysis")
 

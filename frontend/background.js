@@ -82,6 +82,52 @@ async function fetchFromNewsAPI(keywords, excludeSource = null) {
     return [];
   }
 }
+async function frequencyGraph(keyword) {
+  const websites = 'wsj.com,aljazeera.com,bbc.co.uk,nytimes.com,bloomberg.com,cnn.com,foxnews.com,reuters.com,washingtonpost.com';
+  
+  // Date handling
+  const endDate = new Date();
+  // Calculate date 30 days ago
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 30);
+  NEWS_API_KEY = "e751a2f8c355493799ac4f68674a4af7";
+  console.log("starting FE func, keyword:", keyword);
+  
+  try {
+    console.log("attempting to fetch frequency data with keyword:", keyword);
+    
+    // Build query parameters
+    const params = new URLSearchParams({
+      q: keyword[0],
+      domains: websites,
+      sortBy: 'popularity',
+      pageSize: 100,
+      language: 'en',
+      from: startDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      to: endDate.toISOString().split('T')[0],
+      apiKey: NEWS_API_KEY
+    });
+    console.log("sending", `https://newsapi.org/v2/everything?${params.toString()}`);
+    const response = await fetch(`https://newsapi.org/v2/everything?${params.toString()}`);
+    
+    if (!response.ok) {
+      return { error: `Failed to fetch data from NewsAPI: ${response.status}` };
+    }
+    
+    const data = await response.json();
+    const fullArticles = data.articles || [];
+    
+    if (fullArticles.length === 0) {
+      return { error: 'No articles found for the given keyword' };
+    }
+    
+    return fullArticles;
+    
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return { error: error.toString() };
+  }
+}
 
 function bodyJoinClean(text) {
   // remove HTML tags, and clean up
@@ -260,6 +306,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })();
   }
   // Handle paragraph in view (Feature 2)
+  if (message.action === 'frequencyGraph') {
+    const { keywords } = message.data;
+
+    console.log('Keywords for frequency graph:', keywords);
+
+    (async () => {
+      try {
+        const freqData = await frequencyGraph(keywords);
+        console.log('Frequency graph data:', freqData);
+
+        // Store frequency graph data
+        chrome.storage.local.set({
+          frequencyGraphData: {
+            articles: freqData,
+          }
+        });
+
+      } catch (error) {
+        console.error('Error fetching frequency graph data:', error);
+      }
+    }
+  )();
+
+    
+    
+    return true;
+
+  }
   if (message.action === 'paragraphInView') {
     const { paragraphContent, paragraphIndex, url } = message.data;
     

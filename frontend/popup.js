@@ -206,127 +206,176 @@ const elements = {
     graphTitle.textContent = 'Coverage Comparison Across Sources';
     elements.currentParagraphText.appendChild(graphTitle);
     
-    // Create the line graph
-    const graphContent = document.createElement('div');
-    graphContent.className = 'comparison-graph';
+    // Create a container for the D3 graph
+    const graphContainer = document.createElement('div');
+    graphContainer.className = 'd3-chart-container';
+    graphContainer.id = 'coverage-chart';
+    elements.currentParagraphText.appendChild(graphContainer);
     
-    // Sample data points for the line graph
-    const dataPoints = [
-      {source: 'Fox News', values: [0, 25, 40, 35, 65, 55]},
-      {source: 'CNN', values: [0, 15, 30, 40, 35, 40]},
-      {source: 'NYT', values: [0, 10, 35, 60, 75, 65]},
-      {source: 'WSJ', values: [0, 20, 45, 55, 45, 55]},
-      {source: 'BBC', values: [0, 30, 25, 35, 50, 45]}
+    // Sample data - coverage by source over time
+    const data = [
+      { source: 'Fox News', color: '#ff6b6b', values: [
+        { date: '2023-01-01', value: 15 },
+        { date: '2023-01-08', value: 25 },
+        { date: '2023-01-15', value: 40 },
+        { date: '2023-01-22', value: 35 },
+        { date: '2023-01-29', value: 65 },
+        { date: '2023-02-05', value: 55 },
+        { date: '2023-02-12', value: 45 }
+      ]},
+      { source: 'CNN', color: '#48dbfb', values: [
+        { date: '2023-01-01', value: 10 },
+        { date: '2023-01-08', value: 15 },
+        { date: '2023-01-15', value: 30 },
+        { date: '2023-01-22', value: 40 },
+        { date: '2023-01-29', value: 35 },
+        { date: '2023-02-05', value: 40 },
+        { date: '2023-02-12', value: 38 }
+      ]},
+      { source: 'NYT', color: '#1dd1a1', values: [
+        { date: '2023-01-01', value: 5 },
+        { date: '2023-01-08', value: 10 },
+        { date: '2023-01-15', value: 35 },
+        { date: '2023-01-22', value: 60 },
+        { date: '2023-01-29', value: 75 },
+        { date: '2023-02-05', value: 65 },
+        { date: '2023-02-12', value: 70 }
+      ]},
+      { source: 'WSJ', color: '#5f27cd', values: [
+        { date: '2023-01-01', value: 8 },
+        { date: '2023-01-08', value: 20 },
+        { date: '2023-01-15', value: 45 },
+        { date: '2023-01-22', value: 55 },
+        { date: '2023-01-29', value: 45 },
+        { date: '2023-02-05', value: 55 },
+        { date: '2023-02-12', value: 50 }
+      ]},
+      { source: 'BBC', color: '#ff9f43', values: [
+        { date: '2023-01-01', value: 12 },
+        { date: '2023-01-08', value: 30 },
+        { date: '2023-01-15', value: 25 },
+        { date: '2023-01-22', value: 35 },
+        { date: '2023-01-29', value: 50 },
+        { date: '2023-02-05', value: 45 },
+        { date: '2023-02-12', value: 40 }
+      ]}
     ];
     
-    // Calculate line paths and points
-    const graphWidth = 300;
-    const graphHeight = 200;
-    const padding = 40;
-    const timePoints = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May'];
-    const colors = {
-      'Fox News': '#ff6b6b',
-      'CNN': '#48dbfb',
-      'NYT': '#1dd1a1',
-      'WSJ': '#5f27cd',
-      'BBC': '#ff9f43'
-    };
-    
-    // Create SVG element
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute('width', graphWidth);
-    svg.setAttribute('height', graphHeight);
-    svg.style.margin = '10px 0';
-    
-    // Create line paths for each source
-    dataPoints.forEach(data => {
-      const points = data.values.map((value, index) => {
-        const x = (index / (data.values.length - 1)) * (graphWidth - padding) + (padding/2);
-        const y = graphHeight - ((value / 100) * (graphHeight - padding)) - (padding/2);
-        return `${x},${y}`;
-      }).join(' ');
-      
-      // Create the polyline (line graph path)
-      const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-      polyline.setAttribute("points", points);
-      polyline.setAttribute("fill", "none");
-      polyline.setAttribute("stroke", colors[data.source]);
-      polyline.setAttribute("stroke-width", "2");
-      svg.appendChild(polyline);
-      
-      // Add data points as circles
-      data.values.forEach((value, index) => {
-        const x = (index / (data.values.length - 1)) * (graphWidth - padding) + (padding/2);
-        const y = graphHeight - ((value / 100) * (graphHeight - padding)) - (padding/2);
-        
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", x);
-        circle.setAttribute("cy", y);
-        circle.setAttribute("r", "3");
-        circle.setAttribute("fill", "white");
-        circle.setAttribute("stroke", colors[data.source]);
-        circle.setAttribute("stroke-width", "2");
-        svg.appendChild(circle);
+    // Parse dates
+    const parseDate = d3.timeParse("%Y-%m-%d");
+    data.forEach(source => {
+      source.values.forEach(d => {
+        d.date = parseDate(d.date);
       });
     });
     
-    // Add grid lines
-    for (let i = 0; i <= 4; i++) {
-      const y = graphHeight - ((i / 4) * (graphHeight - padding)) - (padding/2);
-      
-      // Create grid line
-      const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      gridLine.setAttribute("x1", padding/2);
-      gridLine.setAttribute("y1", y);
-      gridLine.setAttribute("x2", graphWidth - padding/2);
-      gridLine.setAttribute("y2", y);
-      gridLine.setAttribute("stroke", "#e0e0e0");
-      gridLine.setAttribute("stroke-width", "1");
-      svg.appendChild(gridLine);
-      
-      // Add y-axis labels
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      text.setAttribute("x", padding/2 - 5);
-      text.setAttribute("y", y + 5);
-      text.setAttribute("text-anchor", "end");
-      text.setAttribute("font-size", "10");
-      text.setAttribute("fill", "#5f6368");
-      text.textContent = `${i * 25}%`;
-      svg.appendChild(text);
-    }
+    // Setup chart dimensions
+    const margin = {top: 20, right: 50, bottom: 30, left: 50};
+    const width = 340 - margin.left - margin.right;
+    const height = 220 - margin.top - margin.bottom;
     
-    // Add x-axis labels
-    timePoints.forEach((label, index) => {
-      if (label) {
-        const x = (index / (timePoints.length - 1)) * (graphWidth - padding) + (padding/2);
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", x);
-        text.setAttribute("y", graphHeight - 10);
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("font-size", "10");
-        text.setAttribute("fill", "#5f6368");
-        text.textContent = label;
-        svg.appendChild(text);
-      }
+    // Create SVG
+    const svg = d3.select("#coverage-chart")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+    
+    // Setup scales
+    const x = d3.scaleTime()
+      .domain(d3.extent(data[0].values, d => d.date))
+      .range([0, width]);
+    
+    const y = d3.scaleLinear()
+      .domain([0, 100])
+      .range([height, 0]);
+    
+    // Add X axis
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x)
+        .ticks(5)
+        .tickFormat(d3.timeFormat("%b %d")));
+    
+    // Add Y axis
+    svg.append("g")
+      .call(d3.axisLeft(y)
+        .ticks(5)
+        .tickFormat(d => `${d}%`));
+    
+    // Add grid lines
+    svg.append("g")
+      .attr("class", "grid")
+      .call(d3.axisLeft(y)
+        .ticks(5)
+        .tickSize(-width)
+        .tickFormat(""));
+    
+    // Create the line generator
+    const line = d3.line()
+      .x(d => x(d.date))
+      .y(d => y(d.value))
+      .curve(d3.curveMonotoneX); // Smooth curve
+    
+    // Add the lines
+    data.forEach(source => {
+      // Add the line path
+      svg.append("path")
+        .datum(source.values)
+        .attr("fill", "none")
+        .attr("stroke", source.color)
+        .attr("stroke-width", 2.5)
+        .attr("d", line);
+      
+      // Add data points
+      svg.selectAll(`.point-${source.source.replace(/\s+/g, '-')}`)
+        .data(source.values)
+        .enter()
+        .append("circle")
+        .attr("class", `point-${source.source.replace(/\s+/g, '-')}`)
+        .attr("cx", d => x(d.date))
+        .attr("cy", d => y(d.value))
+        .attr("r", 4)
+        .attr("fill", "white")
+        .attr("stroke", source.color)
+        .attr("stroke-width", 2);
     });
     
-    // Add legend
+    // Add X axis label
+    svg.append("text")
+      .attr("text-anchor", "middle")
+      .attr("x", width/2)
+      .attr("y", height + margin.bottom)
+      .style("font-size", "12px")
+      .style("fill", "#5f6368")
+      .text("Date");
+    
+    // Add Y axis label
+    svg.append("text")
+      .attr("text-anchor", "middle")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -margin.left + 15)
+      .attr("x", -height/2)
+      .style("font-size", "12px")
+      .style("fill", "#5f6368")
+      .text("Coverage Intensity (%)");
+    
+    // Add a legend
     const legendContainer = document.createElement('div');
     legendContainer.className = 'graph-legend';
     
-    Object.entries(colors).forEach(([source, color]) => {
+    data.forEach(source => {
       const legendItem = document.createElement('div');
       legendItem.className = 'legend-item';
       legendItem.innerHTML = `
-        <span class="legend-color" style="background-color: ${color};"></span>
-        <span class="legend-label">${source}</span>
+        <span class="legend-color" style="background-color: ${source.color};"></span>
+        <span class="legend-label">${source.source}</span>
       `;
       legendContainer.appendChild(legendItem);
     });
     
-    graphContent.appendChild(svg);
-    graphContent.appendChild(legendContainer);
-    elements.currentParagraphText.appendChild(graphContent);
+    elements.currentParagraphText.appendChild(legendContainer);
     
     // Add explanation text below the graph
     const explanationText = document.createElement('div');
